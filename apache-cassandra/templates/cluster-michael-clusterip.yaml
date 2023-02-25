@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.cassandra.clusters.michael.host }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "apache-cassandra.selectorLabels" . | nindent 4 }}
+    component: {{ .Values.cassandra.clusters.michael.name }}
+  ports:
+    - name: '{{ .Values.cassandra.clusters.michael.name }}-client-port'
+      port: {{ .Values.cassandra.ports.client }}
+      targetPort: {{ .Values.cassandra.ports.client }}
+    - name: '{{ .Values.cassandra.clusters.michael.name }}-transport-port'
+      port: {{ .Values.cassandra.ports.transport }}
+      targetPort: {{ .Values.cassandra.ports.transport }}
+    - name: '{{ .Values.cassandra.clusters.alex.name }}-jwx-port'
+      port: {{ .Values.cassandra.ports.jwx }}
+      targetPort: {{ .Values.cassandra.ports.jwx }}

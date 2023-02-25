@@ -1,0 +1,40 @@
+serviceAccount:
+  name: 'apache-cassandra'
+
+cassandra:
+  name: cassandra-cluster
+  group: cassandra
+  replicaCount: 1
+  repository: 'bitnami/cassandra'
+  tag: '4.1.0'
+  ports:
+    client: 9042
+    transport: 7000
+    jwx: 7199
+  clusters:
+    alex:
+      name: 'alex'
+      host: 'cassandra-alex'
+      configMap: 'alex-configmap'
+      secrets: 'alex-secrets'
+      auth:
+        username: 'alex'
+        password: 'Pa$S'
+      ports:
+        client: 9042
+    michael:
+      name: 'michael'
+      host: 'cassandra-michael'
+      configMap: 'michael-configmap'
+      secrets: 'michael-secrets'
+      ports:
+        client: 9044
+      auth:
+        username: 'user'
+        password: 'pass'
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

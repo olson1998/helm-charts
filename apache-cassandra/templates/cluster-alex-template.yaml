@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: 'cassandra-cluster-{{ .Values.cassandra.clusters.alex.name }}'
+  labels:
+    {{- include "apache-cassandra.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.cassandra.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "apache-cassandra.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "apache-cassandra.selectorLabels" . | nindent 8 }}
+        component: {{ .Values.cassandra.clusters.alex.name }}
+        group: {{ .Values.cassandra.name }}
+    spec:
+      containers:
+        - name: 'container-{{ .Values.cassandra.clusters.alex.name }}'
+          image: '{{ .Values.cassandra.repository }}:{{ .Values.cassandra.tag }}'
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.cassandra.clusters.alex.configMap }}
+            - secretRef:
+                name: {{ .Values.cassandra.clusters.alex.secrets }}

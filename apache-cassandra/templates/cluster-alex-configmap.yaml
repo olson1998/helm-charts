@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.cassandra.clusters.alex.configMap }}
+data:
+  CASSANDRA_CLUSTER_NAME: '{{ .Values.cassandra.clusters.alex.name }}'
+  CASSANDRA_TRANSPORT_PORT_NUMBER: '{{ .Values.cassandra.ports.transport }}'
+  CASSANDRA_PASSWORD_SEEDER: 'yes'

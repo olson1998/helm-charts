@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "apache-kafka.fullname" . }}
+  labels:
+    {{- include "apache-kafka.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.kafka.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "apache-kafka.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "apache-kafka.selectorLabels" . | nindent 8 }}
+        component: {{ .Values.kafka.name }}
+    spec:
+      serviceAccountName: {{ include "apache-kafka.serviceAccountName" . }}
+      containers:
+        - name: '{{ .Values.kafka.name }}-container'
+          image: '{{ .Values.kafka.repository }}:{{ .Values.kafka.tag }}'
+          envFrom:
+            - secretRef:
+                name: {{ .Values.kafka.secrets }}
+        - name: '{{ .Values.zookeeper.name }}-container'
+          image: '{{ .Values.zookeeper.repository }}:{{ .Values.zookeeper.tag }}'
+          envFrom:
+            - secretRef:
+                name: {{ .Values.zookeeper.secrets }}

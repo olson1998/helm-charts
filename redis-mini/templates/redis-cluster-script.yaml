@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.cluster.script.map }}
+data:
+  {{ .Values.cluster.script.creatingCluster.file }}: |-
+    ALL_READY=no;
+    RESPONSE_NODE_1=NONE;
+    RESPONSE_NODE_2=NONE;
+    RESPONSE_NODE_3=NONE;
+    RESPONSE_NODE_4=NONE;
+    RESPONSE_NODE_5=NONE;
+    RESPONSE_NODE_6=NONE;
+    while [[ ${ALL_READY} == "no" ]]
+    do
+      if [[ ${RESPONSE_NODE_1} != "PONG" ]]
+      then
+      RESPONSE_NODE_1=$(redis-cli -p {{ .Values.node.one.ports.container }} PING);
+      fi
+      if [[ ${RESPONSE_NODE_2} != "PONG" ]]
+      then
+      RESPONSE_NODE_2=$(redis-cli -p {{ .Values.node.two.ports.container }} PING);
+      fi
+      if [[ ${RESPONSE_NODE_3} != "PONG" ]]
+      then
+      RESPONSE_NODE_3=$(redis-cli -p {{ .Values.node.three.ports.container }} PING);
+      fi
+      if [[ ${RESPONSE_NODE_4} != "PONG" ]]
+      then
+      RESPONSE_NODE_4=$(redis-cli -p {{ .Values.node.four.ports.container }} PING);
+      fi
+      if [[ ${RESPONSE_NODE_5} != "PONG" ]]
+      then
+      RESPONSE_NODE_5=$(redis-cli -p {{ .Values.node.five.ports.container }} PING);
+      fi
+      if [[ ${RESPONSE_NODE_6} != "PONG" ]]
+      then
+      RESPONSE_NODE_6=$(redis-cli -p {{ .Values.node.six.ports.container }} PING);
+      fi
+      if [[ ${RESPONSE_NODE_1} == "PONG" ]] && [[ ${RESPONSE_NODE_2} == "PONG" ]] && [[ ${RESPONSE_NODE_3} == "PONG" ]] && [[ ${RESPONSE_NODE_4} == "PONG" ]] && [[ ${RESPONSE_NODE_5} == "PONG" ]] && [[ ${RESPONSE_NODE_6} == "PONG" ]]
+      then
+      ALL_READY=yes;
+      redis-cli --cluster create {{ .Values.cluster.ip.announced }}:{{ .Values.node.one.ports.announced }} {{ .Values.cluster.ip.announced }}:{{ .Values.node.two.ports.announced }} {{ .Values.cluster.ip.announced }}:{{ .Values.node.three.ports.announced }} {{ .Values.cluster.ip.announced }}:{{ .Values.node.four.ports.announced }} {{ .Values.cluster.ip.announced }}:{{ .Values.node.five.ports.announced }} {{ .Values.cluster.ip.announced }}:{{ .Values.node.six.ports.announced }} --cluster-replicas 1 --cluster-yes;
+      fi
+    done;

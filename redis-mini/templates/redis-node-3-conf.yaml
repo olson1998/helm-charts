@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.node.three.config.map }}
+data:
+  {{ .Values.node.config.file }}: |-
+    cluster-enabled yes
+    protected-mode no
+    syslog-enabled yes
+    databases 16
+    cluster-enabled yes
+    cluster-config-file {{ .Values.cluster.config.path }}/{{ .Values.cluster.config.file }}
+    cluster-node-timeout 20000
+    port {{ .Values.node.three.ports.container }}
+    loglevel notice
+    always-show-logo yes
+    cluster-announce-ip {{ .Values.cluster.ip.announced }}
+    cluster-announce-port {{ .Values.node.three.ports.announced }}
+    cluster-announce-bus-port {{ .Values.node.three.ports.announced | add 10000 }}
+    notify-keyspace-events Ex$

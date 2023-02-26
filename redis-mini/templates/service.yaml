@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.cluster.host }}
+spec:
+  type: ClusterIP
+  clusterIP: {{ .Values.cluster.ip.service }}
+  selector:
+    {{- include "redis-mini.selectorLabels" . | nindent 4 }}
+    deployment: {{ .Values.deployment }}
+  ports:
+    - name: '{{ .Values.node.container.name }}-{{ .Values.node.one.name }}'
+      port: {{ .Values.node.one.ports.announced }}
+      targetPort: {{ .Values.node.two.ports.container }}
+    - name: '{{ .Values.node.container.name }}-{{ .Values.node.two.name }}'
+      port: {{ .Values.node.two.ports.announced }}
+      targetPort: {{ .Values.node.three.ports.container }}
+    - name: '{{ .Values.node.container.name }}-{{ .Values.node.three.name }}'
+      port: {{ .Values.node.three.ports.announced }}
+      targetPort: {{ .Values.node.three.ports.container }}
+    - name: '{{ .Values.node.container.name }}-{{ .Values.node.four.name }}'
+      port: {{ .Values.node.four.ports.announced }}
+      targetPort: {{ .Values.node.four.ports.container }}
+    - name: '{{ .Values.node.container.name }}-{{ .Values.node.five.name }}'
+      port: {{ .Values.node.five.ports.announced }}
+      targetPort: {{ .Values.node.five.ports.container }}
+    - name: '{{ .Values.node.container.name }}-{{ .Values.node.six.name }}'
+      port: {{ .Values.node.six.ports.announced }}
+      targetPort: {{ .Values.node.six.ports.container }}

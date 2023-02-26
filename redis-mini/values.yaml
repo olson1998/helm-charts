@@ -4,10 +4,89 @@
 
 replicaCount: 1
 
+deployment: redis-mini
+
 image:
   repository: bitnami/redis-cluster
   pullPolicy: IfNotPresent
   tag: 7.0.5
+
+cluster:
+  name: cluster
+  host: redis-mini
+  ip:
+    service: 10.96.0.60
+    announced: 127.0.0.1
+  config:
+    file: nodes.conf
+    path: config
+  script:
+    map: cluster-scripts
+    volume: cluster-scripts-volume
+    path: tmp/scripts
+    creatingCluster:
+      file: cluster.sh
+
+node:
+  config:
+    file: redis.conf
+    path: tmp/cluster
+  container:
+    name: node
+  one:
+    id: '1'
+    name: '1'
+    ports:
+      container: 9061
+      announced: 9061
+    config:
+      map: redis-mini-node-1-configmap
+      volume: redis-mini-node-1-volume
+  two:
+    id: '2'
+    name: '2'
+    ports:
+      container: 9062
+      announced: 9062
+    config:
+      map: redis-mini-node-2-configmap
+      volume: redis-mini-node-2-volume
+  three:
+    id: '3'
+    name: '3'
+    ports:
+      container: 9063
+      announced: 9063
+    config:
+      map: redis-mini-node-3-configmap
+      volume: redis-mini-node-3-volume
+  four:
+    id: '4'
+    name: '4'
+    ports:
+      container: 9064
+      announced: 9064
+    config:
+      map: redis-mini-node-4-configmap
+      volume: redis-mini-node-4-volume
+  five:
+    id: '5'
+    name: '5'
+    ports:
+      container: 9065
+      announced: 9065
+    config:
+      map: redis-mini-node-5-configmap
+      volume: redis-mini-node-5-volume
+  six:
+    id: '6'
+    name: '6'
+    ports:
+      container: 9066
+      announced: 9066
+    config:
+      map: redis-mini-node-6-configmap
+      volume: redis-mini-node-6-volume
 
 imagePullSecrets: []
 nameOverride: ""
@@ -34,17 +113,6 @@ securityContext: {}
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
   # runAsUser: 1000
-
-service:
-  type: ClusterIP
-  port: 80
-
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
 
 nodeSelector: {}
 

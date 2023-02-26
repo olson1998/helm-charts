@@ -1,61 +1,129 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "redis-mini.fullname" . }}
+  name: '{{ .Release.Name }}-{{ .Values.cluster.name }}'
   labels:
     {{- include "redis-mini.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
     matchLabels:
       {{- include "redis-mini.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       labels:
-        {{- include "redis-mini.selectorLabels" . | nindent 8 }}
+        {{- include "redis-mini.labels" . | nindent 8 }}
+        deployment: {{ .Values.deployment }}
     spec:
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       serviceAccountName: {{ include "redis-mini.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      volumes:
+        - name: {{ .Values.node.one.config.volume }}
+          configMap:
+            name: {{ .Values.node.one.config.map }}
+            optional: false
+        - name: {{ .Values.node.two.config.volume }}
+          configMap:
+            name: {{ .Values.node.two.config.map }}
+            optional: false
+        - name: {{ .Values.node.three.config.volume }}
+          configMap:
+            name: {{ .Values.node.three.config.map }}
+            optional: false
+        - name: {{ .Values.node.four.config.volume }}
+          configMap:
+            name: {{ .Values.node.four.config.map }}
+            optional: false
+        - name: {{ .Values.node.five.config.volume }}
+          configMap:
+            name: {{ .Values.node.five.config.map }}
+            optional: false
+        - name: {{ .Values.node.six.config.volume }}
+          configMap:
+            name: {{ .Values.node.six.config.map }}
+            optional: false
+        - name: {{ .Values.cluster.script.volume }}
+          configMap:
+            name: {{ .Values.cluster.script.map }}
+            optional: false
       containers:
-        - name: {{ .Chart.Name }}
+        - name: '{{ .Release.Name }}-{{ .Values.node.container.name }}-{{ .Values.node.one.name }}'
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: '{{ .Values.image.repository }}:{{ .Values.image.tag }}'
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: 80
-              protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+          volumeMounts:
+            - mountPath: {{ .Values.node.config.path }}
+              name: {{ .Values.node.one.config.volume }}
+            - mountPath: {{ .Values.cluster.script.path }}
+              name: {{ .Values.cluster.script.volume }}
+          command: ['bin/sh', '-c', "
+          nohup bash {{ .Values.cluster.script.path }}/{{ .Values.cluster.script.creatingCluster.file }} &>/dev/null;
+          cd tmp;
+          mkdir {{ .Values.cluster.config.path }};
+          redis-server cluster/{{ .Values.node.config.file }};
+          "]
+        - name: '{{ .Release.Name }}-{{ .Values.node.container.name }}-{{ .Values.node.two.name }}'
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: '{{ .Values.image.repository }}:{{ .Values.image.tag }}'
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - mountPath: {{ .Values.node.config.path }}
+              name: {{ .Values.node.two.config.volume }}
+          command: ['bin/sh', '-c', "
+          cd tmp;
+          mkdir {{ .Values.cluster.config.path }};
+          redis-server cluster/{{ .Values.node.config.file }};
+          "]
+        - name: '{{ .Release.Name }}-{{ .Values.node.container.name }}-{{ .Values.node.three.name }}'
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: '{{ .Values.image.repository }}:{{ .Values.image.tag }}'
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - mountPath: {{ .Values.node.config.path }}
+              name: {{ .Values.node.three.config.volume }}
+          command: ['bin/sh', '-c', "
+          cd tmp;
+          mkdir {{ .Values.cluster.config.path }};
+          redis-server cluster/{{ .Values.node.config.file }};
+          "]
+        - name: '{{ .Release.Name }}-{{ .Values.node.container.name }}-{{ .Values.node.four.name }}'
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: '{{ .Values.image.repository }}:{{ .Values.image.tag }}'
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - mountPath: {{ .Values.node.config.path }}
+              name: {{ .Values.node.four.config.volume }}
+          command: [ 'bin/sh', '-c', "
+          cd tmp;
+          mkdir {{ .Values.cluster.config.path }};
+          redis-server cluster/{{ .Values.node.config.file }};
+          " ]
+        - name: '{{ .Release.Name }}-{{ .Values.node.container.name }}-{{ .Values.node.five.name }}'
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: '{{ .Values.image.repository }}:{{ .Values.image.tag }}'
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - mountPath: {{ .Values.node.config.path }}
+              name: {{ .Values.node.five.config.volume }}
+          command: ['bin/sh', '-c', "
+          cd tmp;
+          mkdir {{ .Values.cluster.config.path }};
+          redis-server cluster/{{ .Values.node.config.file }};
+          "]
+        - name: '{{ .Release.Name }}-{{ .Values.node.container.name }}-{{ .Values.node.six.name }}'
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: '{{ .Values.image.repository }}:{{ .Values.image.tag }}'
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - mountPath: {{ .Values.node.config.path }}
+              name: {{ .Values.node.six.config.volume }}
+          command: ['bin/sh', '-c', "
+          cd tmp;
+          mkdir {{ .Values.cluster.config.path }};
+          redis-server cluster/{{ .Values.node.config.file }};
+          "]

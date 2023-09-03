@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "xampp.fullname" . }}
+  labels:
+    {{- include "xampp.labels" . | nindent 4 }}
+    component: {{ include "xampp.fullname" . }}
+spec:
+  type: LoadBalancer
+  ports:
+    - name: {{ .Values.service.xampp.name }}-1
+      protocol: TCP
+      port: 41061
+      targetPort: 22
+    - name: {{ .Values.service.xampp.name }}-2
+      protocol: TCP
+      port: 41062
+      targetPort: 80
+    - name: {{ .Values.service.mariaDb.name }}
+      protocol: TCP
+      port: {{ .Values.service.mariaDb.ports.local }}
+      targetPort: 3306
+  selector:
+    {{- include "xampp.selectorLabels" . | nindent 4 }}
